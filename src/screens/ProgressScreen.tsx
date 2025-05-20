@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, Alert } from 'react-native';
 import { getHabits } from '../services/storage';
 
 const ProgressScreen = () => {
-/*************  ✨ Windsurf Command 🌟  *************/
   // State variables to track progress
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
@@ -47,7 +46,6 @@ const ProgressScreen = () => {
     <View style={styles.container}>
       <Text style={styles.title}>Today's Progress 📊</Text>
       <Text style={styles.text}>
-/*******  5c8ee5e4-5a6c-4213-9d28-a3be900c66c7  *******/
         Habits Completed: {completedCount} / {totalHabits}
       </Text>
       <Text style={styles.percent}>{completionPercentage}%</Text>

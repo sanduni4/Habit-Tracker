@@ -1,83 +1,133 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Button, Alert, ActivityIndicator } from 'react-native';
-import { getHabits, saveHabits } from '../services/storage';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Switch,
+  Animated,
+} from 'react-native';
 import { Habit } from '../types';
+import { getHabits, saveHabits } from '../services/storage';
+
+type FilterType = 'All' | 'Today' | 'Completed';
 
 const HabitListScreen = () => {
   const [habits, setHabits] = useState<Habit[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const loadHabits = async () => {
-    try {
-      const storedHabits = await getHabits();
-      setHabits(storedHabits);
-    } catch (error) {
-      console.error('Error loading habits:', error);
-      Alert.alert('Error', 'Failed to load habits.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [filter, setFilter] = useState<FilterType>('All');
 
   useEffect(() => {
     loadHabits();
   }, []);
 
-  const handleCompleteHabit = async (id: string) => {
-    const today = new Date().toDateString();
+  const loadHabits = async () => {
+    const data = await getHabits();
+    setHabits(data);
+  };
 
-    const updatedHabits = habits.map(habit => {
+  const toggleCompletion = async (id: string, isCompleted: boolean) => {
+    const today = new Date().toDateString();
+    const updated = habits.map((habit) => {
       if (habit.id === id) {
-        if (habit.completedDates.includes(today)) {
-          Alert.alert('Already marked as completed for today!');
-          return habit;
+        const alreadyCompleted = habit.completedDates.includes(today);
+
+        if (isCompleted && !alreadyCompleted) {
+          // Add today's date if marking complete
+          return { ...habit, completedDates: [...habit.completedDates, today] };
+        } else if (!isCompleted && alreadyCompleted) {
+          // Remove today's date if unmarking
+          return {
+            ...habit,
+            completedDates: habit.completedDates.filter((d) => d !== today),
+          };
         }
-        return {
-          ...habit,
-          completedDates: [...habit.completedDates, today],
-        };
       }
       return habit;
     });
 
-    setHabits(updatedHabits);
-    await saveHabits(updatedHabits);
+    setHabits(updated);
+    await saveHabits(updated);
   };
 
-  const renderHabitItem = ({ item }: { item: Habit }) => {
+  const filterHabits = (): Habit[] => {
     const today = new Date().toDateString();
-    const isCompleted = item.completedDates.includes(today);
 
-    return (
-      <View style={styles.item}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text>Status: {isCompleted ? '✅ Completed' : '❌ Not Completed'}</Text>
-        <Button
-          title="Mark as Complete"
-          onPress={() => handleCompleteHabit(item.id)}
-          disabled={isCompleted}
-        />
-      </View>
-    );
+    switch (filter) {
+      case 'Today':
+        // Show habits that are scheduled for today (Daily or Weekly),
+        // you might want to add better logic for Weekly but for now keep simple
+        return habits.filter(
+          (habit) => habit.frequency === 'Daily' || habit.frequency === 'Weekly'
+        );
+      case 'Completed':
+        return habits.filter((habit) => habit.completedDates.includes(today));
+      case 'All':
+      default:
+        return habits;
+    }
   };
 
-  if (loading) {
+  const renderHabit = ({ item }: { item: Habit }) => {
+    const completedToday = item.completedDates.includes(new Date().toDateString());
+    const scaleAnim = new Animated.Value(1);
+
+    const handleToggle = (value: boolean) => {
+      if (value) {
+        Animated.sequence([
+          Animated.timing(scaleAnim, {
+            toValue: 1.1,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+          Animated.timing(scaleAnim, {
+            toValue: 1,
+            duration: 150,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
+      toggleCompletion(item.id, value);
+    };
+
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="teal" />
-        <Text style={{ marginTop: 16 }}>Loading habits...</Text>
-      </View>
+      <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
+        <Text style={styles.habitName}>{item.name}</Text>
+        <View style={styles.row}>
+          <Text style={{ flex: 1 }}>
+            Status: {completedToday ? '✅ Completed' : '❌ Not Completed'}
+          </Text>
+          <Switch
+            trackColor={{ false: '#767577', true: '#0CA789' }}
+            thumbColor={completedToday ? '#FFF' : '#f4f3f4'}
+            value={completedToday}
+            onValueChange={handleToggle}
+          />
+        </View>
+      </Animated.View>
     );
-  }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Your Habits</Text>
+      {/* Filters */}
+      <View style={styles.filterRow}>
+        {['All', 'Today', 'Completed'].map((f) => (
+          <Text
+            key={f}
+            style={[styles.filterText, filter === f && styles.activeFilter]}
+            onPress={() => setFilter(f as FilterType)}
+          >
+            {f}
+          </Text>
+        ))}
+      </View>
+
       <FlatList
-        data={habits}
+        data={filterHabits()}
         keyExtractor={(item) => item.id}
-        renderItem={renderHabitItem}
-        ListEmptyComponent={<Text>No habits yet. Add some!</Text>}
+        renderItem={renderHabit}
+        ListEmptyComponent={<Text style={styles.empty}>No habits to show.</Text>}
+        contentContainerStyle={styles.listContent}
       />
     </View>
   );
@@ -88,29 +138,51 @@ export default HabitListScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
+    padding: 20,
+    backgroundColor: '#FDFDFD',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  filterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  filterText: {
+    fontSize: 16,
+    fontWeight: '600',
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: '#E0E0E0',
+  },
+  activeFilter: {
+    backgroundColor: '#0CA789',
+    color: '#FFF',
+  },
+  card: {
+    backgroundColor: '#FFF',
+    padding: 16,
+    marginBottom: 14,
+    borderRadius: 12,
+    elevation: 3,
+    shadowColor: '#0CA789',
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.15,
+  },
+  habitName: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 10,
+  },
+  row: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+  empty: {
     textAlign: 'center',
-    marginBottom: 16,
+    marginTop: 50,
+    fontSize: 16,
+    color: '#888',
   },
-  item: {
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 4,
+  listContent: {
+    paddingBottom: 100,
   },
 });

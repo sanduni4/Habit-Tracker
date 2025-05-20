@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, Button, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert,Button } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-
 import { RootStackParamList } from '../navigation/AppNavigator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CustomHomeButton from '../components/CustomHomeButton';
 
 type HomeScreenProps = {
   navigation: StackNavigationProp<RootStackParamList, 'Home'>;
@@ -19,17 +19,21 @@ const HomeScreen = ({ navigation }: HomeScreenProps) => {
     });
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome to Habit Tracker 🌱</Text>
+ return (
 
-      <View style={styles.buttonGroup}>
-        <Button title="Add New Habit" onPress={() => navigation.navigate('AddHabit')} />
-        <Button title="View Habit List" onPress={() => navigation.navigate('HabitList')} />
-        <Button title="View Progress" onPress={() => navigation.navigate('Progress')} />
-        <Button title="Logout" color="red" onPress={handleLogout} />
-      </View>
-    </View>
+     <View style={styles.container}>
+  <Text style={styles.title}>  Habit Tracker 😇</Text>
+  <Text style={styles.subtitle}>Build good habits, break bad ones!</Text>
+
+  <CustomHomeButton title="➕" onPress={() => navigation.navigate('AddHabit')} />
+  <CustomHomeButton title="📋" onPress={() => navigation.navigate('HabitList')} />
+  <CustomHomeButton title="📊" onPress={() => navigation.navigate('Progress')} />
+
+  <View style={styles.footer}>
+    <Button title="🚪 Logout" color="#E53935" onPress={handleLogout} />
+  </View>
+</View>
+
   );
 };
 
@@ -37,17 +41,26 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 0.7,
     padding: 24,
+    backgroundColor: '#F5F5F5',
     justifyContent: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 24,
+    color: '#4CAF50',
+    marginBottom: 8,
   },
-  buttonGroup: {
-    gap: 16,
+  subtitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 50,
+    color: '#333',
+  },
+
+  footer: {
+    marginTop: 32,
   },
 });

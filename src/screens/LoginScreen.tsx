@@ -4,6 +4,7 @@ import { getUser } from '../services/storage';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useNavigation } from '@react-navigation/native';
+import CustomButton from '../components/CustomButton';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
@@ -51,29 +52,10 @@ const LoginScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Login</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      <Button
-        title="Login"
-        onPress={handleLogin}
-        disabled={!email || !password}
-      />
+      <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
+      <TextInput placeholder="Password" value={password} secureTextEntry onChangeText={setPassword} style={styles.input} />
+      <CustomButton title="Login" onPress={handleLogin} />
+      <CustomButton title="Go to Register" onPress={() => navigation.navigate('Register')} />
     </View>
   );
 };
@@ -82,17 +64,19 @@ export default LoginScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 0.6,
     padding: 24,
     justifyContent: 'center',
   },
   title: {
+    flex: 0.2,
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 24,
   },
   input: {
+    
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,

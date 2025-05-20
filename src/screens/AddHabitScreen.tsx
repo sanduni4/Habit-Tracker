@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Button, Alert } from 'react-native';
-import { saveHabits } from '../services/storage';
+import { View, Text, TextInput, StyleSheet, Button, Alert, TouchableOpacity } from 'react-native';
+import { saveAllHabits } from '../services/storage';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { useNavigation } from '@react-navigation/native';
 import { Habit } from '../types';
+import CustomButton from '../components/CustomButton';
+import CustomInput from '../components/CustomInput';
+import { addHabit } from '../services/storage';
+
 
 type AddHabitScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'AddHabit'>;
 
@@ -27,7 +31,9 @@ const AddHabitScreen = () => {
       completedDates: [],
     };
 
-    await saveHabits([newHabit]);
+await addHabit(newHabit);
+
+
 
     Alert.alert('Success', 'Habit added successfully!', [
       { text: 'OK', onPress: () => navigation.goBack() },
@@ -38,27 +44,51 @@ const AddHabitScreen = () => {
     <View style={styles.container}>
       <Text style={styles.title}>Add New Habit</Text>
 
-      <TextInput
-        style={styles.input}
+      <CustomInput
         placeholder="Habit Name"
         value={habitName}
         onChangeText={setHabitName}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Frequency (Daily / Weekly)"
-        value={frequency}
-        onChangeText={(text) => {
-          if (text === 'Daily' || text === 'Weekly' || text === '') {
-            setFrequency(text);
-          } else {
-            Alert.alert('Invalid frequency', 'Please enter either "Daily" or "Weekly".');
-          }
-        }}
-      />
+      <Text style={styles.label}>Frequency</Text>
 
-      <Button title="Add Habit" onPress={handleAddHabit} />
+      <View style={styles.frequencyContainer}>
+        <TouchableOpacity
+          style={[
+            styles.frequencyButton,
+            frequency === 'Daily' && styles.frequencyButtonSelected,
+          ]}
+          onPress={() => setFrequency('Daily')}
+        >
+          <Text
+            style={[
+              styles.frequencyText,
+              frequency === 'Daily' && styles.frequencyTextSelected,
+            ]}
+          >
+            Daily
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.frequencyButton,
+            frequency === 'Weekly' && styles.frequencyButtonSelected,
+          ]}
+          onPress={() => setFrequency('Weekly')}
+        >
+          <Text
+            style={[
+              styles.frequencyText,
+              frequency === 'Weekly' && styles.frequencyTextSelected,
+            ]}
+          >
+            Weekly
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <CustomButton title="Add Habit" onPress={handleAddHabit} />
     </View>
   );
 };
@@ -75,13 +105,35 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
+    marginBottom: 35,
+  },
+
+  label: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  frequencyContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     marginBottom: 24,
   },
-  input: {
+  frequencyButton: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#0CA789',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
+  },
+  frequencyButtonSelected: {
+    backgroundColor: '#0CA789',
+  },
+  frequencyText: {
+    color: '#0CA789',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  frequencyTextSelected: {
+    color: '#FFF',
   },
 });
