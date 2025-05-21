@@ -9,6 +9,7 @@ export interface User {
     name: string;
     frequency: 'Daily' | 'Weekly';
     completedDates: string[];
+    dayOfWeek?: string;
   }
   
     

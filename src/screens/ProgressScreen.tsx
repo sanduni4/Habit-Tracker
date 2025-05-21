@@ -1,80 +1,119 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
-import { getHabits } from '../services/storage';
+import {
+  View,
+  Text,
+  Dimensions,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
+import { PieChart, BarChart } from 'react-native-chart-kit';
 
-const ProgressScreen = () => {
-  // State variables to track progress
-  const [completionPercentage, setCompletionPercentage] = useState(0);
-  const [completedCount, setCompletedCount] = useState(0);
-  const [totalHabits, setTotalHabits] = useState(0);
+const screenWidth = Dimensions.get('window').width;
 
-  useEffect(() => {
-    /**
-     * Asynchronously calculates progress by fetching habits,
-     * counting completed ones for today, and updating state.
-     */
-    const calculateProgress = async () => {
-      try {
-        const habits = await getHabits();
-        const today = new Date().toDateString();
+const ProgressTrackingScreen = () => {
+  const [loading, setLoading] = useState(false);
 
-        // Total number of habits
-        const total = habits.length;
-        
-        // Count habits completed today
-        const completed = habits.filter(habit =>
-          habit.completedDates.includes(today)
-        ).length;
+  // Static data to test the BarChart
+  const staticWeeklyData = [3, 5, 2, 4, 6, 1, 0];
 
-        // Calculate completion percentage
-        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+  // Static labels for last 7 days
+  const staticLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-        // Update state with calculated values
-        setTotalHabits(total);
-        setCompletedCount(completed);
-        setCompletionPercentage(percentage);
-      } catch (error) {
-        console.error('Failed to load habits:', error);
-        Alert.alert('Error', 'Could not load habits data.');
-      }
-    };
+  // Static pie data for demonstration
+  const pieData = [
+    {
+      name: 'Completed',
+      count: 4,
+      color: '#4caf50',
+      legendFontColor: '#333',
+      legendFontSize: 14,
+    },
+    {
+      name: 'Remaining',
+      count: 6,
+      color: '#f44336',
+      legendFontColor: '#333',
+      legendFontSize: 14,
+    },
+  ];
 
-    calculateProgress();
-  }, []);
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4caf50" />
+      </View>
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Today's Progress 📊</Text>
-      <Text style={styles.text}>
-        Habits Completed: {completedCount} / {totalHabits}
-      </Text>
-      <Text style={styles.percent}>{completionPercentage}%</Text>
-    </View>
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>Today's Progress</Text>
+
+      <PieChart
+        data={pieData}
+        width={screenWidth - 40}
+        height={220}
+        chartConfig={chartConfig}
+        accessor="count"
+        backgroundColor="transparent"
+        paddingLeft="10"
+        absolute
+      />
+
+      <Text style={styles.percentageText}>40% Completed Today</Text>
+
+      <Text style={styles.title}>Weekly Progress</Text>
+
+      <BarChart
+        data={{
+          labels: staticLabels,
+          datasets: [{ data: staticWeeklyData }],
+        }}
+        width={screenWidth - 40}
+        height={250}
+        chartConfig={chartConfig}
+        fromZero
+        yAxisInterval={1}
+        showValuesOnTopOfBars
+        style={{ marginTop: 20, borderRadius: 16 }}
+      />
+    </ScrollView>
   );
 };
 
-export default ProgressScreen;
+export default ProgressTrackingScreen;
+
+const chartConfig = {
+  backgroundGradientFrom: '#fff',
+  backgroundGradientTo: '#fff',
+  decimalPlaces: 0,
+  color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`,
+  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  style: {
+    borderRadius: 16,
+  },
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginBottom: 24,
+    marginVertical: 20,
+  },
+  percentageText: {
+    fontSize: 18,
     textAlign: 'center',
-  },
-  text: {
-    fontSize: 20,
-    marginBottom: 16,
-  },
-  percent: {
-    fontSize: 50,
-    fontWeight: 'bold',
-    color: 'teal',
+    marginVertical: 10,
   },
 });

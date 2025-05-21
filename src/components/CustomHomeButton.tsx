@@ -22,7 +22,7 @@ export default CustomHomeButton;
 const styles = StyleSheet.create({
   button: {
     elevation: 5,
-    padding: 20,
+    padding: 15,
     paddingVertical: 14,
     borderRadius: 16,
     shadowColor: '#0CA789',
@@ -30,10 +30,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 6,
     marginBottom: 30,
+    marginHorizontal: 20,
     height: 120,
     width: 120,
     alignItems: 'center',
     justifyContent: 'center',
+    
   },
   text: {
     color: '#FFF',

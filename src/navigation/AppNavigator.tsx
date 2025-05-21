@@ -10,7 +10,9 @@ import AddHabitScreen from '../screens/AddHabitScreen';
 import HabitListScreen from '../screens/HabitListScreen';
 import ProgressScreen from '../screens/ProgressScreen';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-
+import CalendarScreen from '../screens/Calender';
+import CalendarHeader from 'react-native-calendars/src/calendar/header';
+import { Calendar } from 'react-native-calendars';
 
 
 const Tab = createBottomTabNavigator();
@@ -24,6 +26,7 @@ export type RootStackParamList = {
   AddHabit: undefined;
   HabitList: undefined;
   Progress: undefined;
+  Calendar: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -39,6 +42,7 @@ const AppNavigator = () => {
         <Stack.Screen name="AddHabit" component={AddHabitScreen} options={{ headerShown: false }} />
         <Stack.Screen name="HabitList" component={HabitListScreen} />
         <Stack.Screen name="Progress" component={ProgressScreen} />
+        <Stack.Screen name="Calendar" component={CalendarScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

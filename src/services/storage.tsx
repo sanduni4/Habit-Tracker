@@ -66,3 +66,16 @@ export const clearStorage = async () => {
     console.error('Error clearing storage:', error);
   }
 };
+
+
+const markHabitAsDone = async () => {
+  const today = new Date().toISOString().split('T')[0]; // e.g., "2025-05-21"
+  const existing = await AsyncStorage.getItem('@habit_streaks');
+  const streaks = existing ? JSON.parse(existing) : [];
+
+  if (!streaks.includes(today)) {
+    streaks.push(today);
+    await AsyncStorage.setItem('@habit_streaks', JSON.stringify(streaks));
+  }
+};
+
