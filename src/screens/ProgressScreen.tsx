@@ -7,36 +7,84 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { getHabits } from '../services/storage';
+import { Habit } from '../types';
 import { PieChart, BarChart } from 'react-native-chart-kit';
 
 const screenWidth = Dimensions.get('window').width;
 
 const ProgressTrackingScreen = () => {
-  const [loading, setLoading] = useState(false);
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [todayCompleted, setTodayCompleted] = useState(0);
+  const [weeklyData, setWeeklyData] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Static data to test the BarChart
-  const staticWeeklyData = [3, 5, 2, 4, 6, 1, 0];
+  const today = new Date().toDateString();
 
-  // Static labels for last 7 days
-  const staticLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const loadProgress = async () => {
+    try {
+      const storedHabits = await getHabits();
+      setHabits(storedHabits);
 
-  // Static pie data for demonstration
+      // Completed today
+      const completedToday = storedHabits.filter(habit =>
+        habit.completedDates?.includes(today)
+      ).length;
+      setTodayCompleted(completedToday);
+
+      // Last 7 days
+      const weekDays = Array.from({ length: 7 }).map((_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (6 - i));
+        return date.toDateString();
+      });
+
+      const weeklyCounts = weekDays.map(day =>
+        storedHabits.filter(habit => habit.completedDates?.includes(day)).length
+      );
+      setWeeklyData(weeklyCounts);
+    } catch (error) {
+      console.error('Error loading progress:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProgress();
+  }, []);
+
+  const totalHabits = habits.length;
+  const completionPercentage = totalHabits
+    ? ((todayCompleted / totalHabits) * 100).toFixed(1)
+    : '0';
+
   const pieData = [
     {
       name: 'Completed',
-      count: 4,
+      count: todayCompleted,
       color: '#4caf50',
       legendFontColor: '#333',
       legendFontSize: 14,
     },
     {
       name: 'Remaining',
-      count: 6,
+      count: totalHabits - todayCompleted,
       color: '#f44336',
       legendFontColor: '#333',
       legendFontSize: 14,
     },
   ];
+
+  // Dynamic weekday labels (Mon, Tue etc.)
+  const getWeekdayLabels = () => {
+    const options: Intl.DateTimeFormatOptions = { weekday: 'short' };
+    return Array.from({ length: 7 }).map((_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      return date.toLocaleDateString('en-US', options);
+    });
+  };
 
   if (loading) {
     return (
@@ -61,22 +109,23 @@ const ProgressTrackingScreen = () => {
         absolute
       />
 
-      <Text style={styles.percentageText}>40% Completed Today</Text>
+      <Text style={styles.percentageText}>
+        {completionPercentage}% Completed Today
+      </Text>
 
       <Text style={styles.title}>Weekly Progress</Text>
 
       <BarChart
         data={{
-          labels: staticLabels,
-          datasets: [{ data: staticWeeklyData }],
+          labels: getWeekdayLabels(),
+          datasets: [{ data: weeklyData }],
         }}
         width={screenWidth - 40}
         height={250}
         chartConfig={chartConfig}
         fromZero
-        yAxisInterval={1}
         showValuesOnTopOfBars
-        style={{ marginTop: 20, borderRadius: 16 }}
+        style={{ marginTop: 20 }}
       />
     </ScrollView>
   );
