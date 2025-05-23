@@ -17,7 +17,7 @@ This app uses **AsyncStorage** for local data storage and **React Navigation** f
 - 
 ## 📸 Demo Video
 
-[video] 
+[https://github.com/user-attachments/assets/a6111dfd-6e28-4dac-b02f-5b12960bd0d9] 
 ---
 
 ## 🛠️ Tech Stack
